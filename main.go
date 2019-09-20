@@ -13,6 +13,7 @@ import (
 type HandlerConfig struct {
 	sensu.PluginConfig
 	Prefix   string
+	Labels   string
 	Port     uint64
 	Host     string
 	NoPrefix bool
@@ -20,6 +21,7 @@ type HandlerConfig struct {
 
 const (
 	prefix      = "prefix"
+	labels      = "labels"
 	port        = "port"
 	host        = "host"
 	noPrefix    = "no-prefix"
@@ -45,6 +47,14 @@ var (
 			Default:   "sensu",
 			Usage:     "The prefix to use in graphite for these metrics",
 			Value:     &config.Prefix,
+		},
+		{
+			Path:      labels,
+			Argument:  labels,
+			Shorthand: "L",
+			Default:   "",
+			Usage:     "The labels names (comma-separated) of entity labels that must be added to the prefix in graphite for these metrics",
+			Value:     &config.Labels,
 		},
 		{
 			Path:      port,
@@ -82,6 +92,7 @@ func checkArgs(_ *corev2.Event) error {
 
 	if config.NoPrefix {
 		config.Prefix = ""
+		config.Labels = ""
 	}
 
 	if stdin == nil {
@@ -97,6 +108,14 @@ func sendMetrics(event *corev2.Event) error {
 		metrics        []graphite.Metric
 		tmp_point_name string
 	)
+
+	prefix := config.Prefix
+
+	for _, label := range strings.Split(config.Labels, ",") {
+		if val, ok := event.Entity.Labels[label]; ok {
+			prefix = fmt.Sprintf("%s.%s", prefix, val)
+		}
+	}
 
 	Graphite, err := graphite.NewGraphiteWithMetricPrefix(config.Host, int(config.Port), config.Prefix)
 	if err != nil {
