@@ -80,6 +80,7 @@ Usage:
 Flags:
   -h, --help            help for sensu-go-graphite-handler
   -H, --host string     The hostname or address of the graphite server (default "localhost")
+  -L, --labels string   The labels names (comma-separated) of entity labels that must be added to the prefix in graphite for these metrics
   -n, --no-prefix       Do not include *any* prefixes, use the bare metrics.point.name
   -p, --port uint       The port number to which to connect on the graphite server (default 2003)
   -P, --prefix string   The prefix to use in graphite for these metrics (default "sensu")
